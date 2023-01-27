@@ -1,8 +1,8 @@
 //OptionData.hpp 
 //
-//Purpose: Struct file to encapsulate option data
+//Purpose: OptionData with struct to encapsulate option data, as well as enum classes to define option types (call or put) and exercise types (spot and future)
 //
-//Modification dates: 1/15/2023
+//Modification dates: 12/30/2022 - 1/25/2023
 
 
 #ifndef OptionData_hpp
@@ -17,7 +17,6 @@ enum class Exercise_Type
 {
     Spot, Future
 };
-
 
 /* //For future extension
 enum class Asset_class
@@ -36,7 +35,7 @@ struct OptionData
     double m_B;         // Cost of carry 
 
     Option_Type optiontype;         //Type of the option at hand: for the moment, we only deal with puts cand call.
-    Exercise_Type exercisetype;     //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    Exercise_Type exercisetype;     //Exercise type: spot or future
 };
 
 #endif //OptionData_hpp

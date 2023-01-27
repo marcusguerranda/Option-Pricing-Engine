@@ -1,237 +1,92 @@
-//BSExactPricingEngine.cpp
-// The design pattern was inspired by Mark Joshi's "C++ Design Patterns and Derivatives Pricing"
+//AmericanOption.hpp
 //
-//Purpose: Black-Scholes pricing engine for the computing of: exact prices for calls and puts, and computing of greeks: delta, gamma, vega, theta. 
+//Purpose: Defining American option instances, with appropriate data members, and pricing functionalities.
 //
-//Modification date: 1/15/2023
+//Modification date: 1/20/2023
 
-#include "BSExactPricingEngine.hpp"             //Header file for BSExactPricingEngine 
-#include <boost/math/distributions/normal.hpp>  //Using normal distribution from Boost library
-#include <iostream>
-	
-using namespace boost::math;                    //Namespace declaration for using boost/math functionalities relevant to this exercise
     
-double BSExactPricingEngine::D1(const double& S, const double& K, const double& T, const double& R, const double& Sig, const double& B) 
-{
-
-	double Tmp = Sig * sqrt(T);                             //Temporary double value 
-	return (log(S / K) + (B + (Sig*Sig)*0.5) * T) / Tmp;
-}
-
-double BSExactPricingEngine::D2(const double& S, const double& K, const double& T, const double& R, const double& Sig, const double& B) 
-{
-	double Tmp = Sig * sqrt(T);                             //Temporary double value 
-	return (D1(S,K,T,R,Sig,B) - Tmp);
-}
-
-double BSExactPricingEngine::N(const double& x) 
-{
-   	normal_distribution<> myNormal(0, 1);
-	return cdf(myNormal, x);
-}
-
-double BSExactPricingEngine::n(const double& x) 
-{
-    normal_distribution<> myNormal(0, 1); // m = 0, sd = 1
-	return pdf(myNormal, x);
-}
-
-
-
-//CONSTRUCTORS AND DESTRUCTOR
-
-//Default constructor
-BSExactPricingEngine::BSExactPricingEngine(): PricingEngine()
-{
-    //std::cout << "Default constructor in BSExactPricingEngine used." << std::endl;
-}
-
-//Destructor
-BSExactPricingEngine::~BSExactPricingEngine()
-{
-    //std::cout << "Destructor in 'BSExactPricingEngine' used." << std::endl;
-}                                       
-
-
-
-//CALL/PUT PRICE
-double BSExactPricingEngine::Call_Price_BS(const double& S, const double& K, const double& T, const double& R, const double& Sig, const double& B) 
-{
-    return (S * exp((B - R) * T) * N(D1(S,K,T,R,Sig,B))) - (K * exp(-R * T) * N(D2(S,K,T,R,Sig,B)));
-}
-
-double BSExactPricingEngine::Call_Price_BS(const std::vector<double>& source_params)  
-{
-    //Vector of parameter data goes as such:
-    //source_params[0]  = S variable
-    //source_params[1]  = K variable
-    //source_params[2]  = T variable
-    //source_params[3]  = R variable
-    //source_params[4]  = Sig variable
-    //source_params[5]  = B variable
-
-    //Reproducing the following, but referring to appropriate parameters within the vector: return (S * exp((B - R) * T) * N(D1(S,K,T,R,Sig,B))) - (K * exp(-R * T) * N(D2(S,K,T,R,Sig,B)));
-
-    return (source_params[0]* exp((source_params[5]-source_params[3])*source_params[2])                             // S * exp((B - R) * T)
-    *N(D1(source_params[0],source_params[1],source_params[2],source_params[3],source_params[4],source_params[5]))   // * N(D1(S,K,T,R,Sig,B)))
-    -(source_params[1]*exp(-source_params[3]*source_params[2])                                                      // - (K * exp(-R * T)
-    *N(D2(source_params[0],source_params[1],source_params[2],source_params[3],source_params[4],source_params[5]))));// * N(D2(S,K,T,R,Sig,B))
-}
-
-
-
-
-double BSExactPricingEngine::Put_Price_BS(const double& S, const double& K, const double& T, const double& R, const double& Sig, const double& B) 
-{
-    return ((K * exp(-R * T)) * N(-D2(S,K,T,R,Sig,B))) - S * exp((B - R) * T) * N(-D1(S,K,T,R,Sig,B));
-}
-
-double BSExactPricingEngine::Put_Price_BS(const std::vector<double>& source_params)
-{
-    //Vector of parameter data goes as such:
-    //source_params[0]  = S variable
-    //source_params[1]  = K variable
-    //source_params[2]  = T variable
-    //source_params[3]  = R variable
-    //source_params[4]  = Sig variable
-    //source_params[5]  = B variable
+#ifndef AmericanOption_hpp			// Header guards to prevent multiple definitions of same class
+#define AmericanOption_hpp
     
-    //Reproducing the following, but referring to appropriate parameters within the vector: return ((K * exp(-R * T)) * N(-D2(S,K,T,R,Sig,B))) - S * exp((B - R) * T) * N(-D1(S,K,T,R,Sig,B));
-    return ((source_params[1]*exp(-source_params[3]*source_params[2]))                                              // (K * exp(-R * T))
-    *N(-D2(source_params[0],source_params[1],source_params[2],source_params[3],source_params[4],source_params[5]))  //  N(-D2(S,K,T,R,Sig,B))
-    - source_params[0]* exp((source_params[5]-source_params[3])*source_params[2])                                   // -S * exp((B - R) * T)
-    *N(-D1(source_params[0],source_params[1],source_params[2],source_params[3],source_params[4],source_params[5])));   // *N(-D1(S,K,T,R,Sig,B))
-    
-}
+#include "BSExactPricingEngine.hpp"	// BSExactPricingEngine 
+#include "OptionData.hpp"   		// Header file for struct holding option data, for encapsulation
+#include <vector>					// Vector library
+#include <sstream>					// For os stream/ << operator overloading
+#include <cmath>    				// For pow() function
+#include <cstdlib>  				// For rand() function
+#include <iostream>	
+#include <string>	
 
 
-//DELTA
-double BSExactPricingEngine::Call_Delta_BS(const double& S, const double& K, const double& T, const double& R, const double& Sig, const double& B) 
+class AmericanOption
 {
-    return exp((B - R) * T) * N(D1(S,K,T,R,Sig,B));
-}
+    private:
+        OptionData option_data;	// Private struct holding data members for American options (S,K,R,Sig,B)
 
-double BSExactPricingEngine::Call_Delta_BS(const std::vector<double>& source_params)
-{
-    //Vector of parameter data goes as such:
-    //source_params[0]  = S variable
-    //source_params[1]  = K variable
-    //source_params[2]  = T variable
-    //source_params[3]  = R variable
-    //source_params[4]  = Sig variable
-    //source_params[5]  = B variable
+    public:
+    //CONSTRUCTORS AND DESTRUCTOR (canonical header file principles)
 
-    return (exp((source_params[5]-source_params[3])*source_params[2])                                                   // exp((B - R) * T)
-    *N(D1(source_params[0],source_params[1],source_params[2],source_params[3],source_params[4],source_params[5])));     // N(D1(S,K,T,R,Sig,B))
+        AmericanOption();                                               // Default constructor
+        AmericanOption(const double& newS, const double& newK, const double& newR, const double& newSig, const double& newB,const Option_Type& new_optiontype, const Exercise_Type& new_exercise); // Overloaded constructor with provided option parameters
+        AmericanOption(const AmericanOption& source);                   // Copy constructor
+        ~AmericanOption();                                              // Destructor
+        AmericanOption& operator = (const AmericanOption& source);      // Assignment operator
 
-}
+    // MEMBER FUNCTIONS:
 
-double BSExactPricingEngine::Put_Delta_BS(const double& S, const double& K, const double& T, const double& R, const double& Sig, const double& B) 
-{
-	return BSExactPricingEngine::Call_Delta_BS(S,K,T,R,Sig,B) - exp((B - R) * T);
-}
+        void Init();                                // Rather than tediously list initialize values, we create an Init() function to facilitate default initialization
+        void Copy(const AmericanOption& source);    // Rather than tediously implement copying option data members, we centralize this effort with one function doing so. It makes code cleaner.   
+            
+        std::string print_OptionType() const;       // Print whether it is a call or put
+        std::string print_ExerciseType() const;     // Print whether it is a spot option or a future
+        std::string ToString() const;               // Printing out all information on the option at hand 
 
-double BSExactPricingEngine::Put_Delta_BS(const std::vector<double>& source_params)
-{
-    //Vector of parameter data goes as such:
-    //source_params[0]  = S variable
-    //source_params[1]  = K variable
-    //source_params[2]  = T variable
-    //source_params[3]  = R variable
-    //source_params[4]  = Sig variable
-    //source_params[5]  = B variable
+        void toggle_optiontype();                   //  Toggle function to switch option types: call or put
+        void toggle_exercisetype();                 //  Toggle exercise types: spot option or future, taking into consideration the changes in value for B.
 
-    return (BSExactPricingEngine::Call_Delta_BS(source_params[0],source_params[1],source_params[2],source_params[3],source_params[4],source_params[5])  // Call_Delta_BS(S,K,T,R,Sig,B)
-    *exp((source_params[5]-source_params[3])*source_params[2]));                                                                                        // exp((B - R) * T)
-}       
+        void set_OptionType(const Option_Type& source_optiontype);			// Setter function for option type: call or put
+        void set_ExerciseType(const Exercise_Type& source_exercisetype);	// Setter function for exercise type: spot or future
 
+        std::vector<double> vector_data() const;    // Vector to store data members efficiently, and be abe to pass them as arguments in functions rather than give individual data members
 
-//GAMMA
-double BSExactPricingEngine::Gamma_BS(const double& S, const double& K, const double& T, const double& R, const double& Sig, const double& B) 
-{
-    return n(D1(S,K,T,R,Sig,B))* exp((B - R) * T) / (S * Sig * sqrt(T));
-}
+    //GETTERS
+        double const& getS() const;         // Getter function for asset's price
+        double const& getK() const;         // Getter function for strike price of asset at hand
+        double const& getR() const;         // Getter function for interest rate
+        double const& getSig() const;       // Getter function for volatility of asset at hand
+        double const& getB() const;         // Getter function for cost of carry
+        int const& getID() const;           // Getter ID function      
 
-double BSExactPricingEngine::Gamma_BS(const std::vector<double>& source_params)
-{
-    //Vector of parameter data goes as such:
-    //source_params[0]  = S variable
-    //source_params[1]  = K variable
-    //source_params[2]  = T variable
-    //source_params[3]  = R variable
-    //source_params[4]  = Sig variable
-    //source_params[5]  = B variable
+    //SETTERS:
 
-    return ( n(D1(source_params[0],source_params[1],source_params[2],source_params[3],source_params[4],source_params[5]))   // n(D1(S,K,T,R,Sig,B))
-    * exp((source_params[5]-source_params[3])*source_params[2])                                                             // exp((B - R) * T)
-    / (source_params[0]*source_params[4]*sqrt(source_params[2])));                                                          // / (S * Sig * sqrt(T))
-}
-
-//VEGA
-double BSExactPricingEngine::Vega_BS(const double& S, const double& K, const double& T, const double& R, const double& Sig, const double& B) 
-{
-    return S*sqrt(T) * exp((B-R)*T) * n(D1(S,K,T,R,Sig,B));
-}
-
-double BSExactPricingEngine::Vega_BS(const std::vector<double>& source_params)
-{
-    //Vector of parameter data goes as such:
-    //source_params[0]  = S variable
-    //source_params[1]  = K variable
-    //source_params[2]  = T variable
-    //source_params[3]  = R variable
-    //source_params[4]  = Sig variable
-    //source_params[5]  = B variable
-
-    return (source_params[0]*sqrt(source_params[2])                                                                 // S*sqrt(T)
-    * exp((source_params[5]-source_params[3])*source_params[2]))                                                    // exp((B - R) * T)
-    * n(D1(source_params[0],source_params[1],source_params[2],source_params[3],source_params[4],source_params[5])); // n(D1(S,K,T,R,Sig,B))
-}
+        void setS(const double& newS);       // Setter function for underlying price of asset at hand
+        void setK(const double& newK);       // Setter function for strike price of asset at hand
+        void setR(const double& newR);       // Setter function for interest rate
+        void setSig(const double& newSig);   // Setter function for volatility of asset at hand
+		void setB(const double& newB);		 //Setter function for cost of carry at hand
+        //void setAll(const double& ... );   // After careful thought, I believe it does not make sense to have such a function. It would be better to simply create a new instance if deemed appropriate.
 
 
-//THETA
-double BSExactPricingEngine::Call_Theta_BS(const double& S, const double& K, const double& T, const double& R, const double& Sig, const double& B) 
-{
-    return -1.0*(S*Sig*exp((B- R)*T)) * n(D1(S,K,T,R,Sig,B)) / (2.0* sqrt(T)) - (B - R)*S*exp((B-R)*T)*N(D1(S,K,T,R,Sig,B)) - R*K*exp(-R*T)*N(D2(S,K,T,R,Sig,B));
-}
-
-double BSExactPricingEngine::Call_Theta_BS(const std::vector<double>& source_params)
-{
-    //Vector of parameter data goes as such:
-    //source_params[0]  = S variable
-    //source_params[1]  = K variable
-    //source_params[2]  = T variable
-    //source_params[3]  = R variable
-    //source_params[4]  = Sig variable
-    //source_params[5]  = B variable
-
-    return -1.0*(source_params[0]*source_params[4]*exp((source_params[5]-source_params[3])*source_params[2]))               // -1.0*(S*Sig*exp((B- R)*T))
-    * n(D1(source_params[0],source_params[1],source_params[2],source_params[3],source_params[4],source_params[5]))          // *n(D1(S,K,T,R,Sig,B))
-    /(2.0* sqrt(source_params[2]))                                                                                          // /(2.0* sqrt(T))
-    -(source_params[5] - source_params[3])*source_params[0]*exp((source_params[5] - source_params[3])*source_params[2])*N(D1(source_params[0],source_params[1],source_params[2],source_params[3],source_params[4],source_params[5]))
-    -source_params[3]*source_params[1]*exp(-source_params[3]*source_params[2])                                              // -R*K*exp(-R*T)
-    *N(D2(source_params[0],source_params[1],source_params[2],source_params[3],source_params[4],source_params[5]));          // *N(D2(S,K,T,R,Sig,B))
-
-}
+    // Exact formula for a perpetual american option
 
 
-double BSExactPricingEngine::Put_Theta_BS(const double& S, const double& K, const double& T, const double& R, const double& Sig, const double& B) 
-{
-    return Call_Theta_BS(S,K,T,R,Sig,B) + R*K*exp(-R*T) + S*exp((B - R)*T)*(B - R);
-}
+		// Formulae for pricing perpetual american call and put options. I would have created a new pricing engine just for american options, but deemed it 
+		// unnecessary for the purpose of this exercise, given it only required only defining two functions
+        double Price_American_Perp() const;	  // General pricing function to call, which will call either Price_Call_American_Perp() or Price_Put_American_Perp as a function of the option type. Had I
+		// created header and source files for the Pricing of perpetual american options, Price_American_Perp() would have remained in this class, and Price_Call_American_Perp() and Price_Put_American_Perp()
+		// would have been called into that PricingEngine file.
 
-double BSExactPricingEngine::Put_Theta_BS(const std::vector<double>& source_params)
-{
-    //Vector of parameter data goes as such:
-    //source_params[0]  = S variable
-    //source_params[1]  = K variable
-    //source_params[2]  = T variable
-    //source_params[3]  = R variable
-    //source_params[4]  = Sig variable
-    //source_params[5]  = B variable
 
-    return BSExactPricingEngine::Call_Theta_BS(source_params[0],source_params[1],source_params[2],source_params[3],source_params[4],source_params[5]) // Call_Theta_BS(S,K,T,R,Sig,B)
-    + source_params[3]*source_params[1]*exp(-source_params[3]*source_params[2])                                                                      // + R*K*exp(-R*T)
-    + source_params[0]*exp((source_params[5]-source_params[3])*source_params[2])*(source_params[5]*source_params[3]);                                // S*exp((B - R)*T)*(B - R)
-}
+		// Call exact pricing formulae for American option
+		double Price_Call_American_Perp(const double&S, const double&K, const double&R, const double&Sig, const double&B ) const;	//Taking S,K,R,Sig,B as arguments
+		static double Price_Call_American_Perp(std::vector<double>& source_params);	// Taking vector as argument. Static in order to be able to call function before having an instance being created
+
+		// Put exact pricing formulae for American option
+		double Price_Put_American_Perp(const double&S, const double&K, const double&R, const double&Sig, const double&B ) const;	//Taking S,K,R,Sig,B as arguments
+		static double Price_Put_American_Perp(std::vector<double>& source_params);	// Taking vector as argument. Static in order to be able to call function before having an instance being created
+};
+
+std::ostream& operator << (std::ostream &os, const AmericanOption& source);
+
+#endif //AmericanOption_hpp
 

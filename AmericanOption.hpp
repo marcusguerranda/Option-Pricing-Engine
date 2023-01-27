@@ -90,3 +90,4 @@ std::ostream& operator << (std::ostream &os, const AmericanOption& source);
 
 #endif //AmericanOption_hpp
 
+

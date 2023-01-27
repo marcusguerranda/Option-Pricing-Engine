@@ -27,6 +27,7 @@ public:
     static double Delta_Call_DividedDiff(const double& S, const double& K, const double& T, const double& R, const double& Sig, const double& B, const double& h);  // Takes S,K,T,R,Sig,B as arguments
     static double Delta_Call_DividedDiff(const std::vector<double>& source_params, const Param_Type& source_type);  // Taking vector of parameter data as argument
 
+    //Put call approximation by divided differences
     static double Delta_Put_DividedDiff(const double& S, const double& K, const double& T, const double& R, const double& Sig, const double& B, const double& h); // Takes S,K,T,R,Sig,B as arguments
     static double Delta_Put_DividedDiff(const std::vector<double>& source_params, const Param_Type& source_type);   // Taking vector of parameter data as argument
 

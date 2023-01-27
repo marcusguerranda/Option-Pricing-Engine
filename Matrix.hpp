@@ -1,4 +1,10 @@
 //Matrix.hpp
+//
+//Purpose: Matrix class creating instances of matrices, with mesh points generated from Mesher function defined in Mesher.hpp, a vector of parameter data. Other functionalities are 
+//         available as to the size of the matrix, the size of each vectors within the vector of vectors, checking functions to see if the matrix of data is that of spot or future option,
+//         a printer function to print out information from matrix, as well as functionalities related to Black-Scholes pricing and sensitivities, and divided differences delta and gamma functionalities.
+//
+//Modification dates: 12/30/2022 - 1/25/2023
 
 
 #ifndef Matrix_hpp
@@ -57,22 +63,22 @@ class Matrix
         bool isSpot() const;    // Checking function to test whether the data provided is really that of a spot option 
         bool isFuture() const;  // Checking function to test whether the data provided is really that of a future option
 
-        std::vector<double> const& getMesh() const;                                  // Get mesh data from matrix instance, required when printing the appropriate information about the matrix outputs.
+        std::vector<double> const& getMesh() const;         // Get mesh data from matrix instance, required when printing the appropriate information about the matrix outputs.
 
 
 //BLACK-SCHOLES FUNCTIONS
         //Computes option prices, taking as argument a matrix (a vector of vectors of option data parameters)
-        std::vector<double> MatrixPricer_BS(const Option_Type& optiontype, const Exercise_Type& exercisetype); 
-        std::vector<double> Matrix_Delta_BS(const Option_Type& optiontype, const Exercise_Type& exercisetype);
-        std::vector<double> Matrix_Gamma_BS(const Option_Type& optiontype, const Exercise_Type& exercisetype);
-        std::vector<double> Matrix_Vega_BS(const Option_Type& optiontype, const Exercise_Type& exercisetype);
-        std::vector<double> Matrix_Theta_BS(const Option_Type& optiontype, const Exercise_Type& exercisetype);
+        std::vector<double> MatrixPricer_BS(const Option_Type& optiontype, const Exercise_Type& exercisetype);  //Function outputting Black-Scholes prices as a function of each vector of parameter data, and outputting results into a vector
+        std::vector<double> Matrix_Delta_BS(const Option_Type& optiontype, const Exercise_Type& exercisetype);  //Function outputting Black-Scholes deltas as a function of each vector of parameter data, and outputting results into a vector
+        std::vector<double> Matrix_Gamma_BS(const Option_Type& optiontype, const Exercise_Type& exercisetype);  //Function outputting Black-Scholes gammas as a function of each vector of parameter data, and outputting results into a vector
+        std::vector<double> Matrix_Vega_BS(const Option_Type& optiontype, const Exercise_Type& exercisetype);   //Function outputting Black-Scholes vegas as a function of each vector of parameter data, and outputting results into a vector
+        std::vector<double> Matrix_Theta_BS(const Option_Type& optiontype, const Exercise_Type& exercisetype);  //Function outputting Black-Scholes thetas as a function of each vector of parameter data, and outputting results into a vector
 
 //DIVIDED DIFFERENCES
-        std::vector<double> Matrix_Delta_DividedDiff(const Option_Type& optiontype, const Exercise_Type& exercisetype);
-        std::vector<double> Matrix_Gamma_DividedDiff(const Exercise_Type& exercisetype);
+        std::vector<double> Matrix_Delta_DividedDiff(const Option_Type& optiontype, const Exercise_Type& exercisetype); //Function outputting divided differences deltas as a function of each vector of parameter data, and outputting results into a vector
+        std::vector<double> Matrix_Gamma_DividedDiff(const Exercise_Type& exercisetype);        //Function outputting Black-Scholes gammas as a function of each vector of parameter data, and outputting results into a vector
 
-        std::vector<double> Matrix_Pricer_Perp(const Option_Type& optiontype, const Exercise_Type& exercisetype);
+        std::vector<double> Matrix_Pricer_Perp(const Option_Type& optiontype, const Exercise_Type& exercisetype); //Function outputting American perpetual prices as a function of each vector of parameter data, and outputting results into a vector
 };
 
 

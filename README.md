@@ -6,4 +6,6 @@ In a few words, this project aims at pricing European and American options, alon
 
 We also use finite difference methods, Monte Carlo simulations, and other tools. These are included in my pdf file; however, the code is not provided as some parts are proprietary.
 
-While I have put in quite some time aiming to achieve this, there are many other improvements to be made, and I am aware. I was simply out of time and was not willing to commit more time to this endeavor.
+While I have put in quite some time aiming to achieve this, there are many other improvements to be made, and I am aware. For example, it would be better practice to have a base class "Option", from which are derived the different types of options: European, American, Bermudian, etc.
+
+There are as well more advanced design patterns, but these are covered in the second course at Baruch College MFE/Quantnet.
